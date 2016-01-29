@@ -1,6 +1,6 @@
-/*! elastic.js - v1.3.8 - 2015-11-02
+/*! elastic.js - v1.3.8 - 2016-01-29
  * https://github.com/fullscale/elastic.js
- * Copyright (c) 2015 FullScale Labs, LLC; Licensed MIT */
+ * Copyright (c) 2016 FullScale Labs, LLC; Licensed MIT */
 
 /**
  @namespace
@@ -16154,11 +16154,7 @@
         }
 
         t = t.toLowerCase();
-        if (t === 'fvh' || t === 'plain' ||
-            t === 'postings') {
-          addOption(oField, 'type', t);
-        }
-
+        addOption(oField, 'type', t);
         return this;
       },
 

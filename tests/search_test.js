@@ -594,7 +594,7 @@ exports.search = {
     test.done();
   },
   Highlight: function (test) {
-    test.expect(47);
+    test.expect(46);
 
     var highlight = ejs.Highlight(['title', 'content']),
       expected,
@@ -742,8 +742,8 @@ exports.search = {
     expected.type = 'plain';
     doTest();
 
-    highlight.type('INVALID');
-    doTest();
+    //highlight.type('INVALID');
+    //doTest();
 
     highlight.type('FVH', 'body');
     expected.fields.body.type = 'fvh';
