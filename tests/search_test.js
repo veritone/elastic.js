@@ -28,7 +28,7 @@ exports.search = {
     done();
   },
   exists: function (test) {
-    test.expect(17);
+    test.expect(18);
 
     test.ok(ejs.Request, 'Request');
     test.ok(ejs.PartialField, 'PartialField');
@@ -47,6 +47,7 @@ exports.search = {
     test.ok(ejs.CompletionSuggester, 'CompletionSuggester');
     test.ok(ejs.Rescore, 'Rescore');
     test.ok(ejs.InnerHits, 'InnerHits');
+    test.ok(ejs.TopLevelInnerHits, 'TopLevelInnerHits');
 
     test.done();
   },
@@ -1098,7 +1099,6 @@ exports.search = {
 
     test.strictEqual(geoPoint._type(), 'geo point');
 
-
     test.done();
   },
   PartialField: function (test) {
@@ -1237,6 +1237,68 @@ exports.search = {
     doTest();
 
     test.strictEqual(ih._type(), 'inner hits');
+
+    test.done();
+  },
+  TopLevelInnerHits: function (test) {
+    test.expect(12);
+
+    var ih = ejs.TopLevelInnerHits('foo', 'typeOfInnerHit'),
+      expected,
+      query = ejs.MatchAllQuery(),
+      nestedIh = ejs.TopLevelInnerHits('foo.child', 'child', true),
+      doTest = function() {
+        test.deepEqual(ih.toJSON(), expected);
+      };
+
+    expected = { 'foo': { 'type': { 'typeOfInnerHit': {}}}};
+	
+    var expectedInner = expected['foo']['type']['typeOfInnerHit'];
+
+    test.ok(ih, 'InnerHits exists');
+    test.ok(ih.toJSON(), 'toJSON() works');
+
+    // verify the standard inner_hits params
+    ih.name("foo");
+    expectedInner.name = "foo";
+    doTest();
+
+    ih.from(5);
+    expectedInner.from = 5;
+    doTest();
+
+    ih.size(10);
+    expectedInner.size = 10;
+    doTest();
+
+    ih.sort('foo');
+    expectedInner.sort = 'foo';
+    doTest();
+
+
+    ih.source(false);
+    expectedInner._source = false;
+    doTest();
+
+    ih.source(['foo', 'bar']);
+    expectedInner._source = {includes: ['foo', 'bar']};
+    doTest();
+
+    ih.source(['foo'], ['bar']);
+    expectedInner._source = {includes: ['foo'], excludes: ['bar']};
+    doTest();
+
+	// verify inner_hits nesting
+    ih.innerHits(nestedIh);
+    expectedInner.inner_hits = { 'foo.child': {'path': { 'child': {}}}};
+    doTest();
+
+	// verify inner_hits query 
+    ih.query(query);
+    expectedInner.query = query.toJSON();
+    doTest();
+	
+    test.strictEqual(ih._type(), 'top level inner hits');
 
     test.done();
   },

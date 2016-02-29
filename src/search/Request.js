@@ -445,6 +445,33 @@
       },
 
       /**
+            Allows you to set the top-level inner hits on this search object. The top-level 
+            inner hits allows executing a different query for the child/nested documents and
+            for now is the only way to return grandchildren documents
+
+            @member ejs.Request
+            @param {Query} topLevelInnerHits Any valid <code>TopLevelInnerHits</code> object.
+            @returns {Object} returns <code>this</code> so that calls can be chained.
+            */
+      innerHits: function (topLevelInnerHits) {
+        if (topLevelInnerHits == null) {
+          return query.inner_hits;
+        }
+
+        if (!isTopLevelInnerHits(topLevelInnerHits)) {
+          // allow by-hand generated top-level inner_hits request
+          query.inner_hits = topLevelInnerHits;
+          return this;
+        }
+        
+        if (query.inner_hits == null) {
+          query.inner_hits = {};
+        }
+
+        extend(query.inner_hits, topLevelInnerHits.toJSON());
+        return this;
+      },
+      /**
             Allows you to set the specified suggester on this request object.
             Multiple suggesters can be set, all of which will be returned when
             the search is executed.  Global suggestion text can be set by

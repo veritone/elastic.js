@@ -1,4 +1,4 @@
-/*! elastic.js - v1.3.8 - 2016-01-29
+/*! elastic.js - v1.3.8 - 2016-02-11
  * https://github.com/fullscale/elastic.js
  * Copyright (c) 2016 FullScale Labs, LLC; Licensed MIT */
 
@@ -57,7 +57,7 @@
     isGenerator, // checks valid ejs Generator object
     isScoreFunction, // checks valid ejs ScoreFunction object
     isInnerHits, // checks valid ejs InnerHits object
-
+	isTopLevelInnerHits, // checks valid ejs TopLevelInnerHits object
     // create ejs object
     ejs;
 
@@ -240,6 +240,10 @@
 
   isInnerHits = function(obj) {
     return (isEJSObject(obj) && obj._type() === 'inner hits');
+  };
+  
+  isTopLevelInnerHits = function(obj) {
+    return (isEJSObject(obj) && obj._type() === 'top level inner hits');
   };
   /**
     @mixin
@@ -17144,6 +17148,33 @@
       },
 
       /**
+            Allows you to set the top-level inner hits on this search object. The top-level 
+            inner hits allows executing a different query for the child/nested documents and
+            for now is the only way to return grandchildren documents
+
+            @member ejs.Request
+            @param {Query} topLevelInnerHits Any valid <code>TopLevelInnerHits</code> object.
+            @returns {Object} returns <code>this</code> so that calls can be chained.
+            */
+      innerHits: function (topLevelInnerHits) {
+        if (topLevelInnerHits == null) {
+          return query.inner_hits;
+        }
+
+        if (!isTopLevelInnerHits(topLevelInnerHits)) {
+          // allow by-hand generated top-level inner_hits request
+          query.inner_hits = topLevelInnerHits;
+          return this;
+        }
+        
+        if (query.inner_hits == null) {
+          query.inner_hits = {};
+        }
+
+        extend(query.inner_hits, topLevelInnerHits.toJSON());
+        return this;
+      },
+      /**
             Allows you to set the specified suggester on this request object.
             Multiple suggesters can be set, all of which will be returned when
             the search is executed.  Global suggestion text can be set by
@@ -18134,6 +18165,99 @@
     };
   };
 
+  /**
+    @class
+    <p>inner hits can also be defined as a top level construct alongside 
+    the query and aggregations definition. 
+    The main reason for using the top level inner hits definition is to 
+    let the inner hits return documents that don’t match with the main query.
+    At the present this is also the only way to do grandparent/grandchild inner_hits
+    Inner hits definitions can be nested via the top level notation.</p>
+
+    <p>See https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-inner-hits.html#top-level-inner-hits</p>
+
+    @name ejs.InnerHits
+    @ejs request
+
+    @desc
+    <p>Include additional nested hits in the response.</p>
+
+    */
+  ejs.TopLevelInnerHits = function (name, typeOrPath, nested) {
+    
+    var _innerHits = ejs.InnerHits();
+    var innerHitDefinition = _innerHits.toJSON();
+
+    return extend(_innerHits, {
+    /**
+      <p> Allows you to set the specified query on this inner hits object. </p>
+      @member ejs.TopLevelInnerHits
+      @param {Query} someQuery Any valid <code>Query</code> object.
+      @returns {Object} returns <code>this</code> so that calls can be chained.
+      */
+      query: function (someQuery) {
+        if (someQuery == null) {
+          return _innerHits.query;
+        }
+
+        if (!isQuery(someQuery)) {
+          throw new TypeError('Argument must be a Query');
+        }
+
+        innerHitDefinition.query = someQuery.toJSON();
+        return this;
+      },
+      
+    /**
+      <p> Add a nesated inner_hit.  This method can be called multiple times
+      in order to set multiple nested inner_hits. </p>
+
+      @member ejs.TopLevelInnerHits
+      @param {Aggregation} innerHits Any valid <code>TopLevelInnerHits</code> object.
+      @returns {Object} returns <code>this</code> so that calls can be chained.
+      */
+      innerHits: function(nestedInnerHits) {
+        if (nestedInnerHits == null) {
+          return innerHitDefinition.inner_hits;
+        }
+
+        if (innerHitDefinition.inner_hits == null) {
+          innerHitDefinition.inner_hits = {};
+        }
+
+        if (!isTopLevelInnerHits(nestedInnerHits)) {
+          throw new TypeError('Argument must be an instance of TopLevelInnerHits');
+        }
+
+        extend(innerHitDefinition.inner_hits, nestedInnerHits.toJSON());
+
+        return this;
+      },
+      
+    /**
+      The type of ejs object.  For internal use only.
+
+      @member ejs.TopLevelInnerHits
+      @returns {String} the type of object
+      */
+      _type: function () {
+        return 'top level inner hits';
+      },
+      
+      toJSON: function () {
+        var topLevelInnerHits = {};
+        topLevelInnerHits[name] = {};
+        if (nested) {
+          topLevelInnerHits[name]['path'] = {};
+          topLevelInnerHits[name]['path'][typeOrPath] = innerHitDefinition;
+        } else {
+          topLevelInnerHits[name]['type'] = {};
+          topLevelInnerHits[name]['type'][typeOrPath] = innerHitDefinition;
+        }
+        return topLevelInnerHits;
+      }   
+    });
+  };
   /**
     @class
     @suggester

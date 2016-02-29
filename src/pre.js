@@ -53,7 +53,7 @@
     isGenerator, // checks valid ejs Generator object
     isScoreFunction, // checks valid ejs ScoreFunction object
     isInnerHits, // checks valid ejs InnerHits object
-
+	isTopLevelInnerHits, // checks valid ejs TopLevelInnerHits object
     // create ejs object
     ejs;
 

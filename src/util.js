@@ -172,3 +172,7 @@
   isInnerHits = function(obj) {
     return (isEJSObject(obj) && obj._type() === 'inner hits');
   };
+  
+  isTopLevelInnerHits = function(obj) {
+    return (isEJSObject(obj) && obj._type() === 'top level inner hits');
+  };
