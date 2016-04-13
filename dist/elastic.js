@@ -1,4 +1,4 @@
-/*! elastic.js - v1.3.8 - 2016-02-11
+/*! elastic.js - v1.3.9 - 2016-04-13
  * https://github.com/fullscale/elastic.js
  * Copyright (c) 2016 FullScale Labs, LLC; Licensed MIT */
 
@@ -18197,13 +18197,13 @@
       */
       query: function (someQuery) {
         if (someQuery == null) {
-          return _innerHits.query;
+          return _innerHits.inner_query;
         }
 
         if (!isQuery(someQuery)) {
           throw new TypeError('Argument must be a Query');
         }
-
+        _innerHits.inner_query = someQuery;
         innerHitDefinition.query = someQuery.toJSON();
         return this;
       },
