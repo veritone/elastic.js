@@ -22,5 +22,23 @@
 			agg = _common.toJSON();
 
 		agg[name].reverse_nested = {};
-		return _common;
+		return extend(_common, {
+
+      /**
+      <p>Sets the nested path.</p>
+
+      @member ejs.NestedAggregation
+      @param {String} path The nested path value.
+      @returns {Object} returns <code>this</code> so that calls can be chained.
+      */
+      path: function (path) {
+        if (path == null) {
+          return agg[name].reverse_nested.path;
+        }
+
+        agg[name].reverse_nested.path = path;
+        return this;
+      }
+
+    });
 	};

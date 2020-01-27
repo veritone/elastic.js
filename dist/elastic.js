@@ -1,6 +1,6 @@
-/*! elastic.js - v1.3.11 - 2019-07-23
+/*! elastic.js - v1.3.11 - 2020-01-27
  * https://github.com/veritone/elastic.js
- * Copyright (c) 2019 veritone Labs, LLC; Licensed MIT */
+ * Copyright (c) 2020 veritone Labs, LLC; Licensed MIT */
 
 /**
  @namespace
@@ -4957,7 +4957,25 @@
 			agg = _common.toJSON();
 
 		agg[name].reverse_nested = {};
-		return _common;
+		return extend(_common, {
+
+      /**
+      <p>Sets the nested path.</p>
+
+      @member ejs.NestedAggregation
+      @param {String} path The nested path value.
+      @returns {Object} returns <code>this</code> so that calls can be chained.
+      */
+      path: function (path) {
+        if (path == null) {
+          return agg[name].reverse_nested.path;
+        }
+
+        agg[name].reverse_nested.path = path;
+        return this;
+      }
+
+    });
 	};
 
   /**
